@@ -17,10 +17,11 @@
     isoToBreak: "ToBreak",
   };
 
+  /** Paths must match deployed filenames exactly (GitHub Pages is case-sensitive). */
   var DATA = {
-    schools: "schoollocations.geojson",
+    schools: "SchoolLocations.geojson",
     studentHexes: "StudentHexagons.geojson",
-    schoolIsochrones: "isochrones.geojson",
+    schoolIsochrones: "Isochrones.geojson",
   };
 
   /** Network distance isochrones: ToBreak is meters; rings every 0.5 mi up to 5 mi. */
