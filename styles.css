@@ -156,11 +156,11 @@ body.dashboard-unlocked {
 .dashboard-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   flex: 0 0 42%;
   width: 42%;
   min-width: 240px;
-  padding: 16px 18px 24px;
+  padding: 12px 14px 18px;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -204,8 +204,8 @@ body.dashboard-unlocked {
   align-items: stretch;
   gap: 3px;
   flex-shrink: 0;
-  margin-bottom: 8px;
-  padding-bottom: 10px;
+  margin-bottom: 6px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #e5e7eb;
   --sidebar-header-asset-height: calc(0.72rem * 1.25 + 12px);
 }
@@ -271,16 +271,16 @@ body.dashboard-unlocked {
 }
 
 .dashboard-controls {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .kpi-strip {
-  margin: 0 0 12px;
+  margin: 0 0 9px;
 }
 
 .kpi-card {
   margin: 0;
-  padding: 12px 14px;
+  padding: 9px 11px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   background: #f9fafb;
@@ -305,6 +305,126 @@ body.dashboard-unlocked {
   line-height: 1.15;
 }
 
+.proximity-matrix-panel {
+  margin: 11px 0 0;
+  padding: 11px 11px 12px;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.proximity-matrix-panel__heading {
+  margin-bottom: 9px;
+}
+
+.proximity-matrix-panel__controls {
+  margin-bottom: 4px;
+}
+
+.proximity-matrix-panel__field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.proximity-max-miles-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 8px;
+}
+
+.proximity-max-miles-label {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #4b5563;
+}
+
+.proximity-max-miles-row .proximity-max-miles-control {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.proximity-matrix-panel__table-wrap {
+  overflow-x: auto;
+  margin-top: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.proximity-matrix-table {
+  width: 100%;
+  min-width: 280px;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: #1f2937;
+}
+
+.proximity-matrix-table caption {
+  caption-side: bottom;
+  padding-top: 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: left;
+  line-height: 1.35;
+}
+
+.proximity-matrix-table th,
+.proximity-matrix-table td {
+  padding: 5px 8px;
+  border: 1px solid #e5e7eb;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.proximity-matrix-table tbody td[title] {
+  cursor: help;
+}
+
+.proximity-matrix-table th:first-child,
+.proximity-matrix-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fafafa;
+  box-shadow: 1px 0 0 #e5e7eb;
+}
+
+.proximity-matrix-table thead th {
+  background: #f3f4f6;
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.proximity-matrix-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.proximity-matrix-table tbody tr:nth-child(even) td:first-child {
+  background: #f3f4f6;
+}
+
+.proximity-matrix-table .proximity-matrix-table__total-row td {
+  font-weight: 700;
+  background: #eef2ff;
+  border-top: 2px solid #c7d2fe;
+}
+
+.proximity-matrix-table .proximity-matrix-table__total-row td:first-child {
+  background: #eef2ff;
+}
+
 .school-select {
   width: 100%;
   max-width: 100%;
@@ -320,14 +440,14 @@ body.dashboard-unlocked {
 
 .enrollment-chart-panel {
   margin-top: 0;
-  padding: 14px 14px 16px;
+  padding: 11px 11px 12px;
   border: 1px dashed #d1d5db;
   border-radius: 8px;
   background: #fafafa;
 }
 
 .enrollment-chart-panel__title {
-  margin: 0 0 14px;
+  margin: 0 0 11px;
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.35;
@@ -355,7 +475,7 @@ body.dashboard-unlocked {
 
 .enrollment-chart-panel__chart-wrap {
   min-height: 140px;
-  padding-top: 12px;
+  padding-top: 9px;
 }
 
 .enrollment-chart-panel__subtitle {
@@ -898,6 +1018,7 @@ body.dashboard-unlocked {
   gap: 6px;
   cursor: pointer;
   user-select: none;
+  min-width: 0;
 }
 
 .toggles label > input[type="checkbox"] {
@@ -933,16 +1054,28 @@ body.dashboard-unlocked {
   flex-direction: column;
   gap: 0;
   line-height: 1.15;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .toggle-label-main {
   line-height: 1.25;
 }
 
+.toggle-label-main + .toggle-label-sub {
+  margin-top: 1px;
+}
+
 .toggle-label-sub {
+  display: block;
   font-size: 0.68rem;
   color: #6b7280;
   font-weight: 400;
+  white-space: normal;
+}
+
+.toggle-label-sub + .toggle-label-sub {
+  margin-top: 2px;
 }
 
 .toggle-gradient-strip {

@@ -2,7 +2,7 @@
   "use strict";
 
   /**
-   * Milford GeoJSON field names (schoollocations, StudentHexagons, isochrones).
+   * Milford GeoJSON field names (schoollocations, student hex layer, isochrones).
    */
   var FIELD_MAP = {
     schoolId: "OBJECTID",
@@ -10,7 +10,8 @@
     schoolLevel: "Level",
     /** Synthetic: ELEMENTARY | MIDDLE | HIGH set when loading schoollocations */
     schoolType: "_dash_level",
-    hexSchoolName: "School_Name",
+    /** Primary hex field for assigned school name (see hexAssignedSchoolNameFromProps). */
+    hexSchoolName: "School",
     hexGrade: "grade_level",
     hexId: "GRID_ID",
     isoName: "Name",
@@ -20,7 +21,7 @@
   /** Paths must match deployed filenames exactly (GitHub Pages is case-sensitive). */
   var DATA = {
     schools: "SchoolLocations.geojson",
-    studentHexes: "StudentHexagons.geojson",
+    studentHexes: "NewStudentHexagons.geojson",
     schoolIsochrones: "Isochrones.geojson",
   };
 
@@ -310,6 +311,14 @@
     return { type: "FeatureCollection", features: out };
   }
 
+  /** NewStudentHexagons uses `School`; legacy StudentHexagons used `School_Name`. */
+  function hexAssignedSchoolNameFromProps(p) {
+    if (!p) return null;
+    var primary = prop(p, FIELD_MAP.hexSchoolName);
+    if (primary != null && String(primary).trim() !== "") return primary;
+    return prop(p, "School_Name");
+  }
+
   function stripIsochroneNamePrefix(rawName) {
     if (rawName == null || rawName === "") return "";
     var s = String(rawName).trim();
@@ -321,10 +330,9 @@
   function hexCountsBySchoolFromHex(hexFc) {
     var out = Object.create(null);
     if (!hexFc || !hexFc.features) return out;
-    var nf = FIELD_MAP.hexSchoolName;
     for (var i = 0; i < hexFc.features.length; i++) {
       var p = hexFc.features[i].properties || {};
-      var oid = resolveSchoolObjectId(prop(p, nf));
+      var oid = resolveSchoolObjectId(hexAssignedSchoolNameFromProps(p));
       if (oid == null) continue;
       var sk = String(oid);
       out[sk] = (out[sk] || 0) + 1;
@@ -356,15 +364,38 @@
     return String(n);
   }
 
+  /** Phrase for proximity tooltips, e.g. "6th Graders" or "kindergarteners". */
+  function gradeGroupNounPhraseForTooltip(g) {
+    var n = Number(g);
+    if (n === -1) return "Pre-K students";
+    if (n === 0) return "kindergarteners";
+    var s = n % 100;
+    var suf = "th";
+    if (s < 11 || s > 13) {
+      switch (n % 10) {
+        case 1:
+          suf = "st";
+          break;
+        case 2:
+          suf = "nd";
+          break;
+        case 3:
+          suf = "rd";
+          break;
+        default:
+          suf = "th";
+      }
+    }
+    return String(n) + suf + " Graders";
+  }
+
   function aggregateEnrollmentByGrade(hexFc, schoolObjectIdOrNull) {
     var counts = Object.create(null);
     if (!hexFc || !hexFc.features) return counts;
-    var nameField = FIELD_MAP.hexSchoolName;
     var gradeField = FIELD_MAP.hexGrade;
     for (var i = 0; i < hexFc.features.length; i++) {
       var p = hexFc.features[i].properties || {};
-      var rawSchool = prop(p, nameField);
-      var oid = resolveSchoolObjectId(rawSchool);
+      var oid = resolveSchoolObjectId(hexAssignedSchoolNameFromProps(p));
       if (oid == null) continue;
       if (schoolObjectIdOrNull != null && oid !== schoolObjectIdOrNull) continue;
       var gl = prop(p, gradeField);
@@ -479,6 +510,197 @@
     el.textContent = total.toLocaleString();
   }
 
+  function populateProximityReferenceSchoolSelect() {
+    var src = document.getElementById("school-select");
+    var dst = document.getElementById("proximity-reference-school");
+    if (!src || !dst) return;
+    dst.innerHTML = '<option value="">Select reference school…</option>';
+    var si;
+    for (si = 1; si < src.options.length; si++) {
+      var o = document.createElement("option");
+      o.value = src.options[si].value;
+      o.textContent = src.options[si].textContent;
+      dst.appendChild(o);
+    }
+  }
+
+  function updateProximityMaxMilesOutput() {
+    var range = document.getElementById("proximity-max-miles");
+    var out = document.getElementById("proximity-max-miles-output");
+    if (!range) return;
+    var v = Number(range.value);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > 10) v = 10;
+    range.setAttribute("aria-valuenow", String(v));
+    if (out) {
+      out.textContent = formatTravelMiFromSteps(v);
+    }
+  }
+
+  function syncProximityMatrix() {
+    var host = document.getElementById("proximity-matrix-host");
+    if (!host) return;
+    if (!GEO.studentHex || !GRADE_COUNTS_BY_SCHOOL_HEX || !SCHOOL_ISO_ENRICHED) {
+      host.innerHTML =
+        '<p class="enrollment-chart-panel__empty">Loading student geography…</p>';
+      return;
+    }
+    var attendSel = document.getElementById("school-select");
+    var refSel = document.getElementById("proximity-reference-school");
+    var range = document.getElementById("proximity-max-miles");
+    var attendRaw =
+      attendSel && attendSel.value !== "" && attendSel.value != null
+        ? Number(attendSel.value)
+        : NaN;
+    var refRaw =
+      refSel && refSel.value !== "" && refSel.value != null ? Number(refSel.value) : NaN;
+    var maxSteps = range ? Number(range.value) : 10;
+    if (isNaN(maxSteps) || maxSteps < 1) maxSteps = 1;
+    if (maxSteps > 10) maxSteps = 10;
+
+    if (attendRaw == null || isNaN(attendRaw)) {
+      host.innerHTML =
+        '<p class="enrollment-chart-panel__empty">Select a school above to set which school students attend.</p>';
+      return;
+    }
+    if (refRaw == null || isNaN(refRaw)) {
+      host.innerHTML =
+        '<p class="enrollment-chart-panel__empty">Choose a reference school to measure network distance from.</p>';
+      return;
+    }
+
+    var attendName = schoolDisplayNameByObjectId(attendRaw) || "this school";
+    var refName = schoolDisplayNameByObjectId(refRaw) || "the reference school";
+    var enrollByGrade = aggregateEnrollmentByGrade(GEO.studentHex, attendRaw);
+    var totalEnrollAtSchool = sumEnrollmentCounts(enrollByGrade);
+
+    var colData = [];
+    var st;
+    for (st = 1; st <= maxSteps; st++) {
+      var capMi = st * ISO_STEP_MI;
+      var geom = isochroneGeometryForSchoolWithinMaxMi(refRaw, capMi);
+      var byGrade = geom
+        ? travelShedGradeCountsInIsochrone(geom, attendRaw)
+        : null;
+      colData.push({
+        capMi: capMi,
+        byGrade: byGrade && typeof byGrade === "object" ? byGrade : {},
+      });
+    }
+
+    var gi;
+    var rowsHtml = "";
+    for (gi = 0; gi < GRADE_ORDER.length; gi++) {
+      var g = GRADE_ORDER[gi];
+      var gKey = String(g);
+      var rowPeak = 0;
+      var ci;
+      for (ci = 0; ci < colData.length; ci++) {
+        var cij = Number(colData[ci].byGrade[gKey] || 0);
+        if (cij > rowPeak) rowPeak = cij;
+      }
+      if (rowPeak === 0) continue;
+      var denomG = Number(enrollByGrade[gKey] || 0);
+      var gradePhrase = gradeGroupNounPhraseForTooltip(g);
+      var cells = "";
+      for (ci = 0; ci < colData.length; ci++) {
+        var cnt = Number(colData[ci].byGrade[gKey] || 0);
+        var capMiCol = colData[ci].capMi;
+        var distStr = capMiCol.toFixed(1) + " mi";
+        var tip;
+        if (denomG > 0) {
+          var pctG = Math.round((cnt / denomG) * 100);
+          tip =
+            pctG +
+            "% of " +
+            gradePhrase +
+            " at " +
+            attendName +
+            " are within " +
+            distStr +
+            " of " +
+            refName +
+            ".";
+        } else {
+          tip =
+            "No students in this grade recorded at " +
+            attendName +
+            " in the dataset (cell count " +
+            cnt.toLocaleString() +
+            ").";
+        }
+        cells +=
+          '<td title="' +
+          escapeHtml(tip) +
+          '">' +
+          cnt.toLocaleString() +
+          "</td>";
+      }
+      rowsHtml +=
+        "<tr><th scope=\"row\">" +
+        escapeHtml(gradeAxisLabel(g)) +
+        "</th>" +
+        cells +
+        "</tr>";
+    }
+
+    var totalCells = "";
+    var ti;
+    for (ti = 0; ti < colData.length; ti++) {
+      var colSum = 0;
+      for (gi = 0; gi < GRADE_ORDER.length; gi++) {
+        colSum += Number(colData[ti].byGrade[String(GRADE_ORDER[gi])] || 0);
+      }
+      var capMiT = colData[ti].capMi;
+      var distStrT = capMiT.toFixed(1) + " mi";
+      var tipT;
+      if (totalEnrollAtSchool > 0) {
+        var pctT = Math.round((colSum / totalEnrollAtSchool) * 100);
+        tipT =
+          pctT +
+          "% of students at " +
+          attendName +
+          " are within " +
+          distStrT +
+          " of " +
+          refName +
+          ".";
+      } else {
+        tipT =
+          "No enrollment records for " +
+          attendName +
+          " in the dataset (total " +
+          colSum.toLocaleString() +
+          " in this column).";
+      }
+      totalCells +=
+        '<td title="' +
+        escapeHtml(tipT) +
+        '">' +
+        colSum.toLocaleString() +
+        "</td>";
+    }
+
+    var headCells = "";
+    for (st = 1; st <= maxSteps; st++) {
+      var capLbl = "≤" + (st * ISO_STEP_MI).toFixed(1) + " mi";
+      headCells += "<th scope=\"col\">" + escapeHtml(capLbl) + "</th>";
+    }
+
+    host.innerHTML =
+      '<table class="proximity-matrix-table" role="table">' +
+      "<caption>" +
+      "Percentages use enrollment by grade for the attendance school. " +
+      "Columns are cumulative network distance from the reference school.</caption>" +
+      "<thead><tr><th scope=\"col\">Grade</th>" +
+      headCells +
+      "</tr></thead><tbody>" +
+      rowsHtml +
+      '<tr class="proximity-matrix-table__total-row"><th scope="row">Total</th>' +
+      totalCells +
+      "</tr></tbody></table>";
+  }
+
   function refreshSchoolSelectionFromSelectValue() {
     var schoolSel = document.getElementById("school-select");
     var raw = schoolSel && schoolSel.value;
@@ -489,9 +711,21 @@
       setSelectedSchoolState(selectedSchoolMsid);
     }
     syncStudentHexLayer();
-    syncIsochroneLayerData();
     syncEnrollmentChart();
     syncTotalEnrollmentKpi();
+    syncProximityMatrix();
+  }
+
+  /** Match calculator reference dropdown to primary school (dropdown only; map clicks do not call this). */
+  function syncProximityReferenceToPrimarySchool() {
+    var schoolSel = document.getElementById("school-select");
+    var refSel = document.getElementById("proximity-reference-school");
+    if (!schoolSel || !refSel) return;
+    if (schoolSel.value === "" || schoolSel.value == null) {
+      refSel.value = "";
+    } else {
+      refSel.value = schoolSel.value;
+    }
   }
 
   function trySelectSchoolFromMap(objectId) {
@@ -519,12 +753,11 @@
   function buildGradeCountsBySchoolHex(fc) {
     var out = Object.create(null);
     if (!fc || !fc.features) return out;
-    var nf = FIELD_MAP.hexSchoolName;
     var gf = FIELD_MAP.hexGrade;
     for (var i = 0; i < fc.features.length; i++) {
       var f = fc.features[i];
       var p = f.properties || {};
-      var oid = resolveSchoolObjectId(prop(p, nf));
+      var oid = resolveSchoolObjectId(hexAssignedSchoolNameFromProps(p));
       if (oid == null) continue;
       var gl = prop(p, gf);
       if (gl === null || gl === undefined || gl === "") continue;
@@ -723,15 +956,41 @@
     return Number(mi).toFixed(1);
   }
 
-  /** Percent column = ring count ÷ that grade’s total at the school (same hex attribution as enrollment chart). */
-  function formatMilfordTravelShedHtml(totalByGrade, schoolName, milesForRing, schoolTotalsByGrade) {
-    var titleSchool = schoolName != null ? String(schoolName) : "School";
+  /**
+   * Travel shed tooltip title: "[Attendance] students within X.X mi of [Reference]" (same logic as calculator).
+   * Percent column = ring count ÷ that grade’s total at the attendance school.
+   */
+  function formatMilfordTravelShedHtml(
+    totalByGrade,
+    referenceSchoolName,
+    milesForRing,
+    schoolTotalsByGrade,
+    attendanceSchoolName
+  ) {
+    var refNm = referenceSchoolName != null ? String(referenceSchoolName) : "Reference school";
     var miStr = formatTravelShedTooltipMiles(milesForRing);
+    var attNm =
+      attendanceSchoolName != null && String(attendanceSchoolName).trim() !== ""
+        ? String(attendanceSchoolName)
+        : "";
+    if (!attNm) {
+      return (
+        '<div class="travel-shed-hover-inner travel-shed-hover-inner--residence">' +
+        '<div class="travel-shed-hover-title">' +
+        "Within " +
+        (miStr !== "—" ? escapeHtml(miStr) : "—") +
+        " mi of " +
+        escapeHtml(refNm) +
+        "</div>" +
+        '<p class="travel-shed-residence-empty">Select a school in the menu at the top to see grade-level counts.</p></div>'
+      );
+    }
     var titleLine =
-      escapeHtml(titleSchool) +
-      ": " +
-      (miStr !== "—" ? miStr : "—") +
-      " mi travel shed";
+      escapeHtml(attNm) +
+      " students within " +
+      (miStr !== "—" ? escapeHtml(miStr) : "—") +
+      " mi of " +
+      escapeHtml(refNm);
     var schoolTotals = schoolTotalsByGrade || {};
     if (!totalByGrade || !Object.keys(totalByGrade).length) {
       return (
@@ -739,7 +998,11 @@
         '<div class="travel-shed-hover-title">' +
         titleLine +
         "</div>" +
-        '<p class="travel-shed-residence-empty">No attending students with hex centroids inside this ring for this school.</p></div>'
+        '<p class="travel-shed-residence-empty">No students attending ' +
+        escapeHtml(attNm) +
+        " with hex centroids inside this ring (distance from " +
+        escapeHtml(refNm) +
+        ").</p></div>"
       );
     }
     var keys = Object.keys(totalByGrade);
@@ -1215,12 +1478,10 @@
         neighborsByHexKey: Object.create(null),
       };
     }
-    var schoolNameField = FIELD_MAP.hexSchoolName;
     for (var i = 0; i < fc.features.length; i++) {
       var f = fc.features[i];
       var p = f.properties || {};
-      var rawSchool = prop(p, schoolNameField);
-      var oid = resolveSchoolObjectId(rawSchool);
+      var oid = resolveSchoolObjectId(hexAssignedSchoolNameFromProps(p));
       if (oid == null) continue;
       var msid = Number(oid);
       if (isNaN(msid)) continue;
@@ -1401,6 +1662,32 @@
     return { type: "FeatureCollection", features: out };
   }
 
+  /**
+   * Largest network isochrone ring for referenceObjectId whose travel distance is ≤ maxDistMi (nested cumulative polygons).
+   */
+  function isochroneGeometryForSchoolWithinMaxMi(referenceObjectId, maxDistMi) {
+    if (!SCHOOL_ISO_ENRICHED || !SCHOOL_ISO_ENRICHED.features) return null;
+    var rid = Number(referenceObjectId);
+    if (isNaN(rid)) return null;
+    var bestGeom = null;
+    var bestBreak = -Infinity;
+    var fi;
+    for (fi = 0; fi < SCHOOL_ISO_ENRICHED.features.length; fi++) {
+      var f = SCHOOL_ISO_ENRICHED.features[fi];
+      if (!f || !f.properties || !f.geometry) continue;
+      if (Number(f.properties.iso_school_id) !== rid) continue;
+      var d = Number(f.properties.iso_dist_mi);
+      if (isNaN(d) || d > maxDistMi + 1e-6) continue;
+      var br = Number(f.properties.iso_break_m);
+      if (isNaN(br)) br = -Infinity;
+      if (br > bestBreak) {
+        bestBreak = br;
+        bestGeom = f.geometry;
+      }
+    }
+    return bestGeom;
+  }
+
   function syncIsochroneLayerData() {
     if (!map || !map.getSource("school-isochrones")) return;
     clearAllIsochroneHoverState();
@@ -1415,7 +1702,11 @@
       LAST_ISOCHRONE_DISPLAY_FC = outFc;
       return;
     }
-    var ms = selectedSchoolMsid;
+    var refSel = document.getElementById("proximity-reference-school");
+    var ms =
+      refSel && refSel.value !== "" && refSel.value != null
+        ? Number(refSel.value)
+        : NaN;
     if (ms == null || isNaN(ms)) {
       try {
         map.getSource("school-isochrones").setData(outFc);
@@ -2124,10 +2415,19 @@
 
       var shedTgl = document.getElementById("toggle-travel-sheds");
       var shedOn = shedTgl && shedTgl.checked;
+      var refSelForShed = document.getElementById("proximity-reference-school");
+      var refOidForShed =
+        refSelForShed && refSelForShed.value !== "" && refSelForShed.value != null
+          ? Number(refSelForShed.value)
+          : NaN;
+      var attendSelForShed = document.getElementById("school-select");
+      var attendOidForShed =
+        attendSelForShed && attendSelForShed.value !== "" && attendSelForShed.value != null
+          ? Number(attendSelForShed.value)
+          : NaN;
       if (
         shedOn &&
-        selectedSchoolMsid != null &&
-        !isNaN(selectedSchoolMsid) &&
+        !isNaN(refOidForShed) &&
         LAST_ISOCHRONE_DISPLAY_FC &&
         LAST_ISOCHRONE_DISPLAY_FC.features &&
         LAST_ISOCHRONE_DISPLAY_FC.features.length
@@ -2135,10 +2435,17 @@
         var isoFeat = pickIsochroneFeatureAtLngLat(e.lngLat, LAST_ISOCHRONE_DISPLAY_FC);
         if (isoFeat && isoFeat.properties) {
           var isoSid = Number(isoFeat.properties.iso_school_id);
-          var counts = travelShedGradeCountsInIsochrone(isoFeat.geometry, isoSid);
+          var counts = !isNaN(attendOidForShed)
+            ? travelShedGradeCountsInIsochrone(isoFeat.geometry, attendOidForShed)
+            : null;
           var schoolTotalsByGrade =
-            GEO.studentHex != null ? aggregateEnrollmentByGrade(GEO.studentHex, isoSid) : {};
-          var nm = schoolDisplayNameByObjectId(isoSid);
+            !isNaN(attendOidForShed) && GEO.studentHex != null
+              ? aggregateEnrollmentByGrade(GEO.studentHex, attendOidForShed)
+              : {};
+          var refNm = schoolDisplayNameByObjectId(refOidForShed);
+          var attendNm = !isNaN(attendOidForShed)
+            ? schoolDisplayNameByObjectId(attendOidForShed)
+            : null;
           var mi = isoFeat.properties.iso_dist_mi;
           var hoverUid = isoFeat.properties._dash_iso_uid || isoFeatureUid(isoFeat.properties);
           if (hoverUid) {
@@ -2148,7 +2455,13 @@
           travelShedHoverPopup
             .setLngLat(e.lngLat)
             .setHTML(
-              formatMilfordTravelShedHtml(counts || {}, nm, mi, schoolTotalsByGrade)
+              formatMilfordTravelShedHtml(
+                counts || {},
+                refNm != null ? refNm : String(isoSid),
+                mi,
+                schoolTotalsByGrade,
+                attendNm
+              )
             )
             .addTo(map);
           return;
@@ -2229,20 +2542,43 @@
     }
 
     var schoolSel = document.getElementById("school-select");
-    schoolSel.addEventListener("change", refreshSchoolSelectionFromSelectValue);
+    schoolSel.addEventListener("change", function () {
+      syncProximityReferenceToPrimarySchool();
+      refreshSchoolSelectionFromSelectValue();
+      syncIsochroneLayerData();
+    });
+
+    var proxRef = document.getElementById("proximity-reference-school");
+    if (proxRef) {
+      proxRef.addEventListener("change", function () {
+        syncProximityMatrix();
+        syncIsochroneLayerData();
+      });
+    }
+    var proxRange = document.getElementById("proximity-max-miles");
+    if (proxRange) {
+      updateProximityMaxMilesOutput();
+      proxRange.addEventListener("input", function () {
+        updateProximityMaxMilesOutput();
+        syncProximityMatrix();
+      });
+    }
+  }
+
+  function fetchGeoJsonOk(url) {
+    return fetch(url).then(function (r) {
+      if (!r.ok) {
+        throw new Error("Could not load " + url + " (" + r.status + " " + r.statusText + ")");
+      }
+      return r.json();
+    });
   }
 
   map.on("load", function () {
     Promise.all([
-      fetch(DATA.schools).then(function (r) {
-        return r.json();
-      }),
-      fetch(DATA.studentHexes).then(function (r) {
-        return r.json();
-      }),
-      fetch(DATA.schoolIsochrones).then(function (r) {
-        return r.json();
-      }),
+      fetchGeoJsonOk(DATA.schools),
+      fetchGeoJsonOk(DATA.studentHexes),
+      fetchGeoJsonOk(DATA.schoolIsochrones),
     ])
       .then(function (results) {
         GEO.schools = enrichSchoolLocations(results[0]);
@@ -2250,10 +2586,13 @@
         GEO.studentHex = results[1];
         GEO.isochronesRaw = results[2];
         populateSchoolSelect(GEO.schools);
+        populateProximityReferenceSchoolSelect();
         selectedSchoolMsid = null;
         addAllLayers(true);
+        updateProximityMaxMilesOutput();
         syncEnrollmentChart();
         syncTotalEnrollmentKpi();
+        syncProximityMatrix();
         if (!mapLayersInitialized) {
           mapLayersInitialized = true;
           wireUiOnce();

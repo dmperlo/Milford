@@ -94,6 +94,48 @@
           </h2>
           <div class="enrollment-chart-panel__chart-wrap" id="enrollment-chart-host"></div>
         </section>
+
+        <section
+          class="proximity-matrix-panel"
+          id="proximity-matrix-panel"
+          aria-label="Student travel distance calculator"
+        >
+          <h2 class="enrollment-chart-panel__title proximity-matrix-panel__heading" id="proximity-matrix-panel-title">
+            <span class="enrollment-chart-panel__title-prefix">Student Travel Distance Calculator</span>
+          </h2>
+          <div class="proximity-matrix-panel__controls">
+            <label class="proximity-matrix-panel__field-label" for="proximity-reference-school"
+              >Reference school (map travel sheds &amp; distance)</label
+            >
+            <select
+              id="proximity-reference-school"
+              class="school-select"
+              aria-label="Reference school for travel sheds on the map and distance in the calculator"
+            >
+              <option value="">Select reference school…</option>
+            </select>
+            <div class="proximity-max-miles-row">
+              <span class="proximity-max-miles-label" id="proximity-max-miles-label">Table columns up to</span>
+              <div class="travel-shed-max-miles-control proximity-max-miles-control">
+                <input
+                  type="range"
+                  id="proximity-max-miles"
+                  min="1"
+                  max="10"
+                  value="10"
+                  step="1"
+                  aria-valuemin="1"
+                  aria-valuemax="10"
+                  aria-valuenow="10"
+                  aria-label="Maximum distance for matrix columns in half-mile steps"
+                  aria-describedby="proximity-max-miles-label"
+                />
+                <output class="travel-shed-max-miles-output" id="proximity-max-miles-output">5.0 mi</output>
+              </div>
+            </div>
+          </div>
+          <div class="proximity-matrix-panel__table-wrap" id="proximity-matrix-host"></div>
+        </section>
       </aside>
 
       <button
@@ -158,7 +200,8 @@
                     <span class="toggle-gradient-strip toggle-gradient-strip--student" aria-hidden="true"></span>
                     <span class="toggle-label-stack">
                       <span class="toggle-label-main">Student residential density</span>
-                      <span class="toggle-label-sub">For selected school (all schools when none selected)</span>
+                      <span class="toggle-label-sub">For selected school</span>
+                      <span class="toggle-label-sub">(all schools when none selected)</span>
                     </span>
                   </label>
                   <label>
@@ -166,7 +209,8 @@
                     <span class="swatch swatch--amber" aria-hidden="true"></span>
                     <span class="toggle-label-stack">
                       <span class="toggle-label-main">Travel sheds</span>
-                      <span class="toggle-label-sub">Network distance bands from selected school</span>
+                      <span class="toggle-label-sub">From the reference school in</span>
+                      <span class="toggle-label-sub">Student Travel Distance Calculator</span>
                     </span>
                   </label>
                 </div>
