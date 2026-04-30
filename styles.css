@@ -1,0 +1,1093 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #fff;
+  font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic",
+    "Libre Franklin", "Arial Narrow", sans-serif;
+  color: #1a1a1a;
+}
+
+body {
+  overflow: hidden;
+}
+
+body.dashboard-unlocked {
+  height: 100%;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.login-gate {
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: #fff;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.login-gate__inner {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.login-gate__title {
+  margin: 0 0 20px;
+  font-size: clamp(1.15rem, 3.5vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #111827;
+}
+
+.login-gate__title-line {
+  display: block;
+}
+
+.login-gate__hint {
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.login-gate__form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.login-gate__input {
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+}
+
+.login-gate__input::placeholder {
+  color: #9ca3af;
+}
+
+.login-gate__input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.login-gate__error {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #b91c1c;
+  text-align: center;
+}
+
+.login-gate__submit {
+  margin-top: 4px;
+  padding: 12px 20px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.login-gate__submit:hover {
+  background: #1d4ed8;
+}
+
+.login-gate__submit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45);
+}
+
+#login-gate[hidden],
+#dashboard[hidden] {
+  display: none !important;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 0 0 42%;
+  width: 42%;
+  min-width: 240px;
+  padding: 16px 18px 24px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #fff;
+}
+
+.dashboard-resizer {
+  flex: 0 0 8px;
+  width: 8px;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: #e5e7eb;
+  cursor: col-resize;
+  position: relative;
+  z-index: 5;
+  align-self: stretch;
+  transition: background 0.15s ease;
+}
+
+.dashboard-resizer:hover,
+.dashboard-resizer:focus-visible {
+  background: #cbd5e1;
+  outline: none;
+}
+
+.dashboard-resizer::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.sidebar-top-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  --sidebar-header-asset-height: calc(0.72rem * 1.25 + 12px);
+}
+
+.sidebar-top-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+.sidebar-top-bar__row--heading {
+  justify-content: space-between;
+}
+
+.sidebar-credits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 10px;
+  flex: 0 1 auto;
+  margin-left: auto;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: #4b5563;
+}
+
+.sidebar-credits__text {
+  white-space: nowrap;
+}
+
+.sidebar-credits__logo {
+  height: var(--sidebar-header-asset-height);
+  width: auto;
+  max-width: min(42vw, 11.5rem);
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.sidebar-credits__logo--client {
+  height: calc(var(--sidebar-header-asset-height) * 2.1);
+  max-width: min(50vw, 14rem);
+}
+
+.sidebar-brand-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.35em;
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.sidebar-brand-main {
+  font-weight: 700;
+  color: #111827;
+}
+
+.dashboard-controls {
+  margin-bottom: 8px;
+}
+
+.kpi-strip {
+  margin: 0 0 12px;
+}
+
+.kpi-card {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.kpi-card__label {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.kpi-card__value {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #111827;
+  line-height: 1.15;
+}
+
+.school-select {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.enrollment-chart-panel {
+  margin-top: 0;
+  padding: 14px 14px 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.enrollment-chart-panel__title {
+  margin: 0 0 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #4b5563;
+}
+
+.enrollment-chart-panel__title-prefix {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.enrollment-chart-panel__title-suffix {
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #374151;
+}
+
+.enrollment-chart-panel__placeholder {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.enrollment-chart-panel__chart-wrap {
+  min-height: 140px;
+  padding-top: 12px;
+}
+
+.enrollment-chart-panel__subtitle {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.enrollment-chart-panel__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.enrollment-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 178px;
+  padding: 6px 0 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.enrollment-chart__col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  min-height: 0;
+}
+
+.enrollment-chart__bar-stack {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 36px;
+  height: 108px;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.enrollment-chart__bar-stack-spacer {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.enrollment-chart__bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  min-height: 2px;
+  flex: 0 0 auto;
+  transition: height 0.15s ease;
+}
+
+.enrollment-chart__bar--zero {
+  min-height: 0;
+  height: 0 !important;
+  background: transparent;
+}
+
+.enrollment-chart__label {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.enrollment-chart__value {
+  flex: 0 0 auto;
+  margin-bottom: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #1f2937;
+  text-align: center;
+  line-height: 1.15;
+}
+
+/* Hover tooltips (aligned with Brevard K-8 dashboard patterns) */
+.school-hover-popup .mapboxgl-popup-content {
+  padding: 8px 10px;
+  line-height: 1.35;
+  max-width: 300px;
+}
+
+.school-hover-inner {
+  font-family: "Franklin Gothic Book", "Franklin Gothic", "Libre Franklin", "Arial Narrow", sans-serif;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.school-hover-name {
+  display: block;
+  font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic", "Libre Franklin",
+    "Arial Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.school-hover-row {
+  margin: 0 0 4px;
+  font-size: 0.82rem;
+  color: #374151;
+}
+
+.school-hover-note {
+  margin: 8px 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #6b7280;
+}
+
+.travel-shed-hover-popup .mapboxgl-popup-content {
+  padding: 6px 8px;
+  line-height: 1.3;
+  font-size: 12px;
+  color: #1f2937;
+  max-width: 430px;
+}
+
+.travel-shed-hover-popup .travel-shed-hover-inner {
+  font-family: "Franklin Gothic Book", "Franklin Gothic", "Libre Franklin", "Arial Narrow", sans-serif;
+}
+
+.travel-shed-hover-title {
+  font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic", "Libre Franklin",
+    "Arial Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  margin: 0 0 6px;
+  color: #111827;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.travel-shed-residence-grades--1col {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.travel-shed-residence-grades--2col {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.65rem 0.85rem;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.travel-shed-residence-pane {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.travel-shed-residence-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(3.25rem, auto) minmax(2.85rem, auto);
+  align-items: baseline;
+  gap: 0.4rem 0.5rem;
+  padding: 0 0 3px;
+  margin-bottom: 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4b5563;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.travel-shed-residence-h-n {
+  text-align: right;
+}
+
+.travel-shed-residence-pct-h {
+  text-align: right;
+}
+
+.travel-shed-residence-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px 0;
+}
+
+.travel-shed-residence-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(3.25rem, auto) minmax(2.85rem, auto);
+  align-items: baseline;
+  gap: 0.4rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+  color: #374151;
+}
+
+.travel-shed-residence-row--all-grades {
+  font-weight: 600;
+  color: #111827;
+  padding-top: 3px;
+  margin-top: 1px;
+}
+
+.travel-shed-residence-footer {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.travel-shed-residence-grade {
+  min-width: 0;
+}
+
+.travel-shed-residence-n {
+  text-align: right;
+}
+
+.travel-shed-residence-pct {
+  text-align: right;
+  font-size: 0.76em;
+  color: #4b5563;
+}
+
+.travel-shed-residence-row--all-grades .travel-shed-residence-pct {
+  color: #111827;
+  font-size: inherit;
+}
+
+.travel-shed-residence-empty {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: #6b7280;
+}
+
+.student-hex-hover-popup .mapboxgl-popup-content {
+  padding: 8px 10px;
+  line-height: 1.35;
+}
+
+.student-hex-hover-popup .student-hex-hover-inner {
+  font-family: "Franklin Gothic Book", "Franklin Gothic", "Libre Franklin", "Arial Narrow", sans-serif;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.student-hex-hover-popup .student-hex-hover-line {
+  font-weight: 600;
+}
+
+.student-hex-hover-popup .student-hex-hover-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.student-hex-hover-popup .student-hex-hover-unit {
+  font-weight: 400;
+}
+
+.student-hex-hover-popup .student-hex-hover-sub {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #4b5563;
+}
+
+.dashboard-map-wrap {
+  position: relative;
+  flex: 1 1 58%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.map-root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.toolbar {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  left: auto;
+  top: 12px;
+  max-width: min(360px, calc(100% - 24px));
+  padding: 0;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.toolbar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #111827;
+  border: none;
+  background: #f3f4f6;
+  cursor: pointer;
+  text-align: left;
+  gap: 10px;
+}
+
+.toolbar-toggle:hover {
+  background: #e5e7eb;
+}
+
+.toolbar-toggle-chevron {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid #374151;
+  border-bottom: 2px solid #374151;
+  transform: rotate(45deg);
+  margin-top: -0.2em;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.toolbar--collapsed .toolbar-toggle-chevron {
+  transform: rotate(-45deg);
+  margin-top: 0.1em;
+}
+
+.toolbar-panel {
+  padding: 12px 14px 14px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.toolbar--collapsed .toolbar-panel {
+  display: none;
+}
+
+.layer-section--map-menu {
+  margin: 0;
+}
+
+.map-layers-menu-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.map-layers-menu-stack > .toggles--middle-technical-row {
+  margin-top: 0;
+}
+
+.basemap-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.basemap-row--embedded {
+  margin-top: 0;
+}
+
+.basemap-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.basemap-segmented {
+  display: inline-flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+}
+
+.basemap-segmented button {
+  margin: 0;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  border: none;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.basemap-segmented button:hover {
+  background: #e5e7eb;
+}
+
+.basemap-segmented button.is-active {
+  background: #fff;
+  color: #111827;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #d1d5db;
+}
+
+.basemap-segmented--triple button {
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  max-width: 5.75rem;
+}
+
+.travel-shed-menu-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.travel-shed-menu-stack--embedded {
+  gap: 0;
+}
+
+#travel-shed-max-miles-row[hidden] {
+  display: none !important;
+}
+
+.travel-shed-max-miles-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 0 0 0 1px;
+}
+
+.travel-shed-menu-stack--embedded .travel-shed-max-miles-row {
+  margin-top: 0;
+  padding-left: 0;
+}
+
+.travel-shed-max-miles-label {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #4b5563;
+}
+
+.travel-shed-max-miles-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.travel-shed-max-miles-control input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 1.25rem;
+  cursor: pointer;
+  color: #6b7280;
+  background: transparent;
+  accent-color: #6b7280;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.travel-shed-max-miles-control input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.3rem;
+  background: #d1d5db;
+  border-radius: 0.2rem;
+}
+
+.travel-shed-max-miles-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-top: -0.3rem;
+  background: #6b7280;
+  border-radius: 50%;
+  border: 0;
+  box-shadow: 0 0 0 1px #e5e7eb;
+  cursor: pointer;
+}
+
+.travel-shed-max-miles-output {
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: right;
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.toggles--middle-technical-row {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.toggles--middle-technical-row label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.toggles label {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggles label > input[type="checkbox"] {
+  margin-top: 0.2em;
+  flex-shrink: 0;
+}
+
+.toggles input {
+  accent-color: #2563eb;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.swatch--amber {
+  background: linear-gradient(
+    135deg,
+    #fffbeb 0%,
+    #fcd34d 45%,
+    #92400e 100%
+  );
+}
+
+.toggle-label-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.15;
+}
+
+.toggle-label-main {
+  line-height: 1.25;
+}
+
+.toggle-label-sub {
+  font-size: 0.68rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.toggle-gradient-strip {
+  display: inline-block;
+  width: 52px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.toggle-gradient-strip--student {
+  background: linear-gradient(
+    90deg,
+    rgba(34, 211, 238, 0.35) 0%,
+    rgba(147, 51, 234, 0.65) 45%,
+    rgba(251, 146, 60, 0.95) 100%
+  );
+}
+
+.map-density-legend {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
+  left: auto;
+  bottom: 32px;
+  max-width: min(240px, calc(100% - 100px));
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Franklin Gothic Book", "Franklin Gothic", "Libre Franklin", "Arial Narrow",
+    sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: #334155;
+  pointer-events: none;
+}
+
+.map-density-legend__row {
+  margin-top: 8px;
+}
+
+.map-density-legend__row:first-child {
+  margin-top: 0;
+}
+
+.map-density-legend__title {
+  font-weight: 600;
+  font-size: 0.74rem;
+  margin-bottom: 4px;
+  color: #1e293b;
+}
+
+.map-density-legend__bar {
+  height: 10px;
+  width: 100%;
+  min-width: 0;
+  border-radius: 3px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.map-density-legend__bar--student {
+  background: linear-gradient(
+    90deg,
+    rgba(34, 211, 238, 0.2) 0%,
+    rgba(56, 189, 248, 0.5) 12%,
+    rgba(98, 88, 230, 0.6) 28%,
+    rgba(147, 51, 234, 0.7) 44%,
+    rgba(219, 39, 119, 0.8) 62%,
+    rgba(234, 88, 12, 0.9) 78%,
+    rgba(255, 251, 200, 1) 100%
+  );
+}
+
+.map-density-legend__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  font-size: 0.7rem;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+}
+
+.map-density-legend__val {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.mapboxgl-ctrl {
+  font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic",
+    "Libre Franklin", "Arial Narrow", sans-serif;
+}
+
+.mapboxgl-popup-content {
+  font-size: 13px;
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.mapboxgl-popup-content .popup-school-name {
+  display: block;
+  margin-bottom: 4px;
+  font-family: "Franklin Gothic Medium", "Franklin Gothic", "ITC Franklin Gothic",
+    "Libre Franklin", "Arial Narrow", sans-serif;
+  font-weight: 600;
+}
+
+.mapboxgl-popup-content .popup-detail {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+@media (max-width: 960px) {
+  .dashboard {
+    flex-direction: column;
+    height: auto;
+    max-height: none;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  body.dashboard-unlocked {
+    overflow: auto;
+  }
+
+  .dashboard-resizer {
+    display: none;
+  }
+
+  .dashboard-sidebar {
+    flex: 1 1 50%;
+    width: 100% !important;
+    min-height: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dashboard-map-wrap {
+    flex: 1 1 50%;
+    min-height: 240px;
+    width: 100%;
+  }
+}

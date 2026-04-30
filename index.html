@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Milford Public Schools | School Exploration Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="login-gate" class="login-gate">
+      <div class="login-gate__inner">
+        <h1 class="login-gate__title">
+          <span class="login-gate__title-line">Milford Public Schools</span>
+          <span class="login-gate__title-line">School Exploration Dashboard</span>
+        </h1>
+        <p class="login-gate__hint">Please enter the password to access this dashboard.</p>
+        <form id="login-form" class="login-gate__form" novalidate>
+          <label class="visually-hidden" for="login-password">Password</label>
+          <input
+            type="password"
+            id="login-password"
+            class="login-gate__input"
+            name="password"
+            placeholder="Enter password"
+            autocomplete="current-password"
+            required
+          />
+          <p id="login-error" class="login-gate__error" role="alert" hidden>
+            Incorrect password.
+          </p>
+          <button type="submit" class="login-gate__submit">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="dashboard" id="dashboard" hidden>
+      <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard data">
+        <header class="sidebar-top-bar">
+          <div class="sidebar-top-bar__row sidebar-top-bar__row--heading">
+            <h1 class="sidebar-brand-line">
+              <span class="sidebar-brand-main"
+                >Milford Public Schools | School Exploration Dashboard</span
+              >
+            </h1>
+            <div class="sidebar-credits" aria-label="Developed for Milford Public Schools by Perkins Eastman">
+              <span class="sidebar-credits__text">Developed for</span>
+              <img
+                class="sidebar-credits__logo sidebar-credits__logo--client"
+                src="assets/milford-public-schools.png"
+                alt="Milford Public Schools"
+              />
+              <span class="sidebar-credits__text">by</span>
+              <img
+                class="sidebar-credits__logo sidebar-credits__logo--pe"
+                src="assets/perkins-eastman.png"
+                alt="Perkins Eastman"
+              />
+            </div>
+          </div>
+        </header>
+
+        <div class="dashboard-controls">
+          <label class="visually-hidden" for="school-select">School</label>
+          <select id="school-select" class="school-select" aria-label="Select school">
+            <option value="">Select a school…</option>
+          </select>
+        </div>
+
+        <section class="kpi-strip" aria-label="Enrollment summary">
+          <article class="kpi-card">
+            <h2 class="kpi-card__label">'25–'26 enrollment (student locations)</h2>
+            <p class="kpi-card__value" id="kpi-total-enrollment">—</p>
+          </article>
+        </section>
+
+        <section
+          class="enrollment-chart-panel"
+          id="enrollment-chart-panel"
+          aria-label="Enrollment by grade"
+        >
+          <h2 class="enrollment-chart-panel__title" id="enrollment-chart-panel-title">
+            <span class="enrollment-chart-panel__title-prefix">Enrollment by grade</span
+            ><span class="enrollment-chart-panel__title-suffix">: …</span>
+          </h2>
+          <div class="enrollment-chart-panel__chart-wrap" id="enrollment-chart-host"></div>
+        </section>
+      </aside>
+
+      <button
+        type="button"
+        class="dashboard-resizer"
+        id="dashboard-resizer"
+        aria-label="Resize data panel"
+        title="Drag to resize"
+      ></button>
+
+      <div class="dashboard-map-wrap" id="dashboard-map-wrap">
+        <div id="map" class="map-root" role="application" aria-label="Map"></div>
+        <div class="toolbar" id="map-toolbar">
+          <button
+            type="button"
+            class="toolbar-toggle"
+            id="toolbar-toggle"
+            aria-expanded="true"
+            aria-controls="toolbar-panel"
+          >
+            <span>Map layers</span>
+            <span class="toolbar-toggle-chevron" aria-hidden="true"></span>
+          </button>
+          <div class="toolbar-panel" id="toolbar-panel">
+            <section class="layer-section layer-section--map-menu" aria-label="Map layers">
+              <div class="map-layers-menu-stack">
+                <div class="toggles">
+                  <label>
+                    <input type="checkbox" id="toggle-school-elementary" checked />
+                    <span class="swatch" style="background: #16a34a" aria-hidden="true"></span>
+                    <span class="toggle-label-stack">
+                      <span class="toggle-label-main">Elementary schools</span>
+                    </span>
+                  </label>
+                  <label>
+                    <input type="checkbox" id="toggle-school-high" checked />
+                    <span class="swatch" style="background: #9333ea" aria-hidden="true"></span>
+                    <span class="toggle-label-stack">
+                      <span class="toggle-label-main">High schools</span>
+                    </span>
+                  </label>
+                </div>
+                <div class="toggles toggles--middle-technical-row">
+                  <label>
+                    <input type="checkbox" id="toggle-school-middle" checked />
+                    <span class="swatch" style="background: #2563eb" aria-hidden="true"></span>
+                    <span class="toggle-label-stack">
+                      <span class="toggle-label-main">Middle schools</span>
+                    </span>
+                  </label>
+                  <label>
+                    <input type="checkbox" id="toggle-school-technical" checked />
+                    <span class="swatch" style="background: #ea580c" aria-hidden="true"></span>
+                    <span class="toggle-label-stack">
+                      <span class="toggle-label-main">Technical schools</span>
+                    </span>
+                  </label>
+                </div>
+                <div class="toggles">
+                  <label>
+                    <input type="checkbox" id="toggle-student-hex" checked />
+                    <span class="toggle-gradient-strip toggle-gradient-strip--student" aria-hidden="true"></span>
+                    <span class="toggle-label-stack">
+                      <span class="toggle-label-main">Student location density</span>
+                      <span class="toggle-label-sub">For selected school (all schools when none selected)</span>
+                    </span>
+                  </label>
+                  <label>
+                    <input type="checkbox" id="toggle-travel-sheds" />
+                    <span class="swatch swatch--amber" aria-hidden="true"></span>
+                    <span class="toggle-label-stack">
+                      <span class="toggle-label-main">Travel sheds</span>
+                      <span class="toggle-label-sub">Network distance bands from selected school</span>
+                    </span>
+                  </label>
+                </div>
+                <div class="travel-shed-menu-stack travel-shed-menu-stack--embedded">
+                  <div id="travel-shed-max-miles-row" class="travel-shed-max-miles-row" hidden>
+                    <div class="travel-shed-max-miles-label" id="travel-shed-max-miles-label">
+                      Show network distance up to
+                    </div>
+                    <div class="travel-shed-max-miles-control">
+                      <input
+                        type="range"
+                        id="travel-shed-max-miles"
+                        min="1"
+                        max="10"
+                        value="10"
+                        step="1"
+                        aria-valuemin="1"
+                        aria-valuemax="10"
+                        aria-valuenow="10"
+                        aria-label="Maximum travel shed distance in half-mile steps"
+                      />
+                      <output class="travel-shed-max-miles-output" id="travel-shed-max-miles-output">5 mi</output>
+                    </div>
+                  </div>
+                </div>
+                <div class="basemap-row basemap-row--embedded">
+                  <span class="basemap-label">Basemap</span>
+                  <div class="basemap-segmented basemap-segmented--triple" id="basemap-toggle" role="group" aria-label="Basemap style">
+                    <button type="button" data-basemap="light" class="is-active" aria-pressed="true">Light</button>
+                    <button type="button" data-basemap="streets" aria-pressed="false">Streets</button>
+                    <button type="button" data-basemap="satellite" aria-pressed="false">Satellite</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <aside class="map-density-legend" id="map-density-legend" aria-label="Map legend">
+          <div class="map-density-legend__row" id="map-density-legend-student-row">
+            <div class="map-density-legend__title">Student residential density</div>
+            <div
+              class="map-density-legend__bar map-density-legend__bar--student"
+              role="img"
+              id="map-density-legend-student-scale"
+              aria-label="Student residential density color scale"
+            ></div>
+            <div class="map-density-legend__axis">
+              <span class="map-density-legend__val" id="map-density-legend-student-min">—</span>
+              <span class="map-density-legend__val" id="map-density-legend-student-max">—</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+    <script>
+      (function () {
+        var AUTH_KEY = "milfordSchoolDashAuth";
+        var PASSWORD = "Milford26";
+        var gate = document.getElementById("login-gate");
+        var dash = document.getElementById("dashboard");
+        var form = document.getElementById("login-form");
+        var err = document.getElementById("login-error");
+        var input = document.getElementById("login-password");
+
+        function loadApp() {
+          if (window.__dashboardAppLoaded) return;
+          window.__dashboardAppLoaded = true;
+          var s = document.createElement("script");
+          s.src = "app.js";
+          document.body.appendChild(s);
+        }
+
+        function enterDashboard() {
+          sessionStorage.setItem(AUTH_KEY, "1");
+          gate.hidden = true;
+          dash.hidden = false;
+          document.body.classList.add("dashboard-unlocked");
+          loadApp();
+        }
+
+        if (sessionStorage.getItem(AUTH_KEY) === "1") {
+          gate.hidden = true;
+          dash.hidden = false;
+          document.body.classList.add("dashboard-unlocked");
+          loadApp();
+        } else if (form && input) {
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            if (input.value === PASSWORD) {
+              err.hidden = true;
+              enterDashboard();
+            } else {
+              err.hidden = false;
+            }
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
