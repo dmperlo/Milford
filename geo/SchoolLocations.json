@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 9001,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-73.0682, 41.2376]
+      },
+      "properties": {
+        "SCHOOLS_ID": 9001,
+        "NAME": "Orange Ave. Elementary School",
+        "TYPE": "ELEMENTARY",
+        "Grades": "K–6"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9002,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-73.0478, 41.2198]
+      },
+      "properties": {
+        "SCHOOLS_ID": 9002,
+        "NAME": "East Shore Middle School",
+        "TYPE": "MIDDLE",
+        "Grades": "7–8"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9003,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-73.0395, 41.2341]
+      },
+      "properties": {
+        "SCHOOLS_ID": 9003,
+        "NAME": "Jonathan Law High School",
+        "TYPE": "HIGH",
+        "Grades": "9–12"
+      }
+    }
+  ]
+}
