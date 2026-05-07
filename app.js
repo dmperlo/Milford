@@ -246,7 +246,7 @@
   /**
    * Hide residential density when zoomed in past this level (visible at z ≤ value).
    */
-  var STUDENT_RESIDENCE_DENSITY_MAX_ZOOM = 12.25;
+  var STUDENT_RESIDENCE_DENSITY_MAX_ZOOM = 14.25;
 
   function prop(obj, key) {
     if (!obj || key == null) return null;
