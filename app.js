@@ -59,8 +59,6 @@
     elementary: { fill: "#16a34a", line: "#15803d", highlightStroke: "#4ade80" },
     middle: { fill: "#2563eb", line: "#1d4ed8", highlightStroke: "#93c5fd" },
     high: { fill: "#9333ea", line: "#7e22ce", highlightStroke: "#d8b4fe" },
-    /** Technical high schools (e.g. Platt Technical) — same orange family as Brevard jr/sr styling */
-    technical: { fill: "#ea580c", line: "#c2410c", highlightStroke: "#fb923c" },
     jrSr: { fill: "#ea580c", line: "#c2410c", highlightStroke: "#fb923c" },
   };
 
@@ -243,6 +241,12 @@
   var travelShedMaxHalfSteps = 10;
   var mapLayersInitialized = false;
   var map;
+  /** Points in student-hex source when density is enabled (for zoom gating). */
+  var studentHexLayerFeatureCount = 0;
+  /**
+   * Hide residential density when zoomed in past this level (visible at z ≤ value).
+   */
+  var STUDENT_RESIDENCE_DENSITY_MAX_ZOOM = 12.25;
 
   function prop(obj, key) {
     if (!obj || key == null) return null;
@@ -307,6 +311,20 @@
       var p = Object.assign({}, f.properties || {});
       p[FIELD_MAP.schoolType] = dashLevelFromSchoolLevel(prop(p, levelKey));
       out.push({ type: "Feature", geometry: f.geometry, properties: p });
+    }
+    return { type: "FeatureCollection", features: out };
+  }
+
+  /** Schools shown on the map (excludes technical school shown only in backend data). */
+  function schoolsFeatureCollectionForMap(fc) {
+    if (!fc || !fc.features) return fc;
+    var nameKey = FIELD_MAP.schoolName;
+    var out = [];
+    for (var i = 0; i < fc.features.length; i++) {
+      var f = fc.features[i];
+      var nm = prop(f.properties || {}, nameKey);
+      if (nm === PLATT_TECHNICAL_SCHOOL_NAME) continue;
+      out.push(f);
     }
     return { type: "FeatureCollection", features: out };
   }
@@ -1168,7 +1186,6 @@
       ["toggle-school-elementary", "schools-elementary"],
       ["toggle-school-middle", "schools-middle"],
       ["toggle-school-high", "schools-high"],
-      ["toggle-school-technical", "schools-technical"],
     ];
     var out = [];
     for (var i = 0; i < pairs.length; i++) {
@@ -1213,7 +1230,7 @@
       "</span>" +
       '<span class="student-hex-hover-unit"> students per square mile</span></div>';
     var sub = "";
-    if (!isNaN(rawC)) {
+    if (!isNaN(rawC) && rawC > 3) {
       sub =
         '<div class="student-hex-hover-sub">' +
         escapeHtml(rawC.toLocaleString()) +
@@ -1757,6 +1774,38 @@
     LAST_ISOCHRONE_DISPLAY_FC = outFc;
   }
 
+  function studentHexLayersZoomAllowsDensity() {
+    if (!map) return true;
+    try {
+      return map.getZoom() <= STUDENT_RESIDENCE_DENSITY_MAX_ZOOM;
+    } catch (ez) {
+      return true;
+    }
+  }
+
+  function applyStudentHexZoomVisibility() {
+    if (!map) return;
+    var tgl = document.getElementById("toggle-student-hex");
+    var heatOn = !!(tgl && tgl.checked);
+    var zoomOk = studentHexLayersZoomAllowsDensity();
+    var show = heatOn && studentHexLayerFeatureCount > 0 && zoomOk;
+    var vis = show ? "visible" : "none";
+    try {
+      if (map.getLayer("student-hex-heatmap")) {
+        map.setLayoutProperty("student-hex-heatmap", "visibility", vis);
+      }
+      if (map.getLayer("student-hex-hit-fill")) {
+        map.setLayoutProperty("student-hex-hit-fill", "visibility", vis);
+      }
+    } catch (eLay) {
+      /* ignore */
+    }
+    var legRow = document.getElementById("map-density-legend-student-row");
+    if (legRow) {
+      legRow.hidden = !show;
+    }
+  }
+
   function applyResidenceHeatmapSymbology() {
     if (!map || !map.getLayer("student-hex-heatmap")) return;
     var sel = document.getElementById("school-select");
@@ -1779,6 +1828,7 @@
   function syncStudentHexLayer() {
     if (!map || !map.getSource("student-hex")) return;
     function empty() {
+      studentHexLayerFeatureCount = 0;
       map.getSource("student-hex").setData({ type: "FeatureCollection", features: [] });
       if (map.getSource("student-hex-hit")) {
         map.getSource("student-hex-hit").setData({ type: "FeatureCollection", features: [] });
@@ -1788,6 +1838,10 @@
       }
       if (map.getLayer("student-hex-hit-fill")) {
         map.setLayoutProperty("student-hex-hit-fill", "visibility", "none");
+      }
+      var legRow = document.getElementById("map-density-legend-student-row");
+      if (legRow) {
+        legRow.hidden = true;
       }
     }
     var tgl = document.getElementById("toggle-student-hex");
@@ -1830,6 +1884,7 @@
       empty();
       return;
     }
+    studentHexLayerFeatureCount = features.length;
     map.getSource("student-hex").setData({ type: "FeatureCollection", features: features });
     if (map.getSource("student-hex-hit")) {
       map.getSource("student-hex-hit").setData({
@@ -1837,13 +1892,8 @@
         features: hitFeatures,
       });
     }
-    if (map.getLayer("student-hex-heatmap")) {
-      map.setLayoutProperty("student-hex-heatmap", "visibility", "visible");
-    }
-    if (map.getLayer("student-hex-hit-fill")) {
-      map.setLayoutProperty("student-hex-hit-fill", "visibility", "visible");
-    }
     applyResidenceHeatmapSymbology();
+    applyStudentHexZoomVisibility();
     refreshDensityLegend();
   }
 
@@ -1911,7 +1961,7 @@
   function clearSchoolSelectionState() {
     if (!map || !map.getSource("schools")) return;
     try {
-      var fc = GEO.schools;
+      var fc = GEO.schools ? schoolsFeatureCollectionForMap(GEO.schools) : null;
       if (fc && fc.features) {
         for (var i = 0; i < fc.features.length; i++) {
           var id = fc.features[i].properties && fc.features[i].properties[FIELD_MAP.schoolId];
@@ -1939,7 +1989,7 @@
 
   function addAllLayers(fitBounds) {
     if (!GEO.schools) return;
-    var schools = GEO.schools;
+    var schools = schoolsFeatureCollectionForMap(GEO.schools);
     var studentHexFc = GEO.studentHex || { type: "FeatureCollection", features: [] };
     STUDENT_HEX_INDEX =
       studentHexFc.features && studentHexFc.features.length
@@ -2041,21 +2091,6 @@
         ],
       }),
     });
-    map.addLayer({
-      id: "schools-technical",
-      type: "circle",
-      source: "schools",
-      filter: ["==", ["get", typeField], "TECHNICAL"],
-      paint: Object.assign({}, schoolMapCircleBasePaint, {
-        "circle-color": PALETTE.technical.fill,
-        "circle-stroke-color": [
-          "case",
-          schoolMapHighlightStateAny(),
-          PALETTE.technical.highlightStroke,
-          "#ffffff",
-        ],
-      }),
-    });
 
     map.addSource("school-isochrones", {
       type: "geojson",
@@ -2138,7 +2173,7 @@
       layout: { visibility: "none" },
     });
 
-    ["schools-elementary", "schools-middle", "schools-high", "schools-technical"].forEach(function (lid) {
+    ["schools-elementary", "schools-middle", "schools-high"].forEach(function (lid) {
       if (map.getLayer(lid)) map.moveLayer(lid);
     });
     if (map.getLayer("school-isochrones-outline")) {
@@ -2173,7 +2208,6 @@
       ["toggle-school-elementary", "schools-elementary"],
       ["toggle-school-middle", "schools-middle"],
       ["toggle-school-high", "schools-high"],
-      ["toggle-school-technical", "schools-technical"],
     ];
     for (var pi = 0; pi < pairs.length; pi++) {
       var inp = document.getElementById(pairs[pi][0]);
@@ -2497,7 +2531,10 @@
     });
 
     map.on("moveend", refreshDensityLegend);
-    map.on("zoomend", refreshDensityLegend);
+    map.on("zoomend", function () {
+      applyStudentHexZoomVisibility();
+      refreshDensityLegend();
+    });
   }
 
   function escapeHtml(s) {
@@ -2520,7 +2557,7 @@
       }
     });
 
-    ["toggle-school-elementary", "toggle-school-middle", "toggle-school-high", "toggle-school-technical"].forEach(
+    ["toggle-school-elementary", "toggle-school-middle", "toggle-school-high"].forEach(
       function (tid) {
         var el = document.getElementById(tid);
         if (el) el.addEventListener("change", syncLayerToggles);
